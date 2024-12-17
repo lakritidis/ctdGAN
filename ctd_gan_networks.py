@@ -41,7 +41,7 @@ class Critic(nn.Module):
         return gradient_penalty
 
     def forward(self, x):
-        """Apply the Discriminator to the `input_`."""
+        """Apply the Discriminator to the `input`."""
         assert x.size()[0] % self._pac == 0
         return self._seq(x.view(-1, self._pac_dim))
 

@@ -20,6 +20,7 @@ datasets = {
     'anemia': {'path': dataset_path + 'anemia.csv', 'categorical_cols': (), 'class_col': 14},
 }
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     set_random_states(seed)

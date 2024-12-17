@@ -6,7 +6,7 @@ import contextlib
 
 
 def set_random_states(manual_seed):
-    """Initializes the random number generators of NumPy, PyTorch, and PyTorch CUDA by passing the input seed.
+    """Initialize the random number generators of NumPy, PyTorch, and PyTorch CUDA by passing the input seed.
 
     Args:
         manual_seed: An integer to be passed to the random number generators.

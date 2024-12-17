@@ -105,7 +105,6 @@ class ctdGAN:
 
         # discrete_transformer performs dataset-wise one-hot-encoding of the categorical columns
         self._discrete_transformer = None
-
         self._random_state = random_state       # An integer to seed the random number generators
 
     @staticmethod

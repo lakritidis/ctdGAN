@@ -40,7 +40,6 @@ class ctdCluster:
         self._random_state = random_state
 
         self._num_samples = 0
-
         self._min = None
         self._max = None
 

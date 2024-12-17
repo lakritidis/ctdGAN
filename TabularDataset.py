@@ -23,8 +23,6 @@ pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', 400)
 
 
-# #################################################################################################################
-# DATASET BASE CLASS
 class TabularDataset:
     def __init__(self, name, categorical_columns=None, class_column=None, random_state=0):
         """

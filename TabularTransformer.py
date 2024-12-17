@@ -20,7 +20,7 @@ ColumnTransformInfo = namedtuple(
     ]
 )
 
-
+# TabularTransformer
 class TabularTransformer(object):
     """Data Transformer.
 
