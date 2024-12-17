@@ -9,8 +9,8 @@ LONG_DESCRIPTION = '<p>ctdGAN is a Conditional Generative Adversarial Network fo
     'optimizes a loss function that is sensitive to both cluster and class mis-predictions, rendering the model'\
     'capable of generating samples in subspaces that resemble those of the original data distribution.</p>'\
     '<p><b>Licence:</b> Apache License, 2.0 (Apache-2.0)</p>' \
-    '<p><b>Dependencies:</b>NumPy, pandas, Natural Language Toolkit (nltk), Matplotlib, seaborn, Gensim, joblib, ' \
-    'Reversible Data Transforms(RDT), bs4, scikit-learn, imblearn, pytorch, transformers, Synthetic Data Vault</p>'\
+    '<p><b>Dependencies:</b>NumPy, pandas, Matplotlib, seaborn, joblib, ' \
+    'Reversible Data Transforms(RDT), scikit-learn, pytorch, Synthetic Data Vault</p>'\
     '<p><b>GitHub repository:</b> '\
     '<a href="https://github.com/lakritidis/ctdGAN">https://github.com/lakritidis/ctdGAN</a></p>'
 
