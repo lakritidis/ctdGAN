@@ -26,6 +26,7 @@ if __name__ == '__main__':
     set_random_states(seed)
     dataset = datasets['anemia']
 
+
     """Create, train and test individual generators.
     """
     dset = TabularDataset(name='test', class_column=dataset['class_col'],
