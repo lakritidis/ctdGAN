@@ -64,6 +64,7 @@ class ctdGAN:
         self._max_clusters = max_clusters
 
         self._input_dim = 0                     # Input data dimensionality
+        self._embedding_dim = embedding_dim
         self._categorical_columns = []
 
         self._gen_samples_ratio = None          # Array [number of samples to generate per class]
@@ -71,18 +72,15 @@ class ctdGAN:
 
         self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        self.embedding_dim_ = embedding_dim
-        self.batch_norm_ = True
-        self.pac_ = pac
+        self._pac = pac
         self._disc_lr = lr
         self._gen_lr = lr
         self._disc_decay = decay
         self._gen_decay = decay
-        self._transformer = None                # Input data transformer (normalizers)
-        self._sampling_strategy = sampling_strategy  # Used in `fit_resample`: How GAN generates data
-
         self._epochs = epochs                   # Number of training epochs
         self._batch_size = batch_size           # Number of data instances per training batch
+
+        self._sampling_strategy = sampling_strategy  # Used in `fit_resample`: How GAN generates data
 
         # Discriminator parameters (object, architecture, optimizer)
         self.D_ = None
@@ -207,14 +205,16 @@ class ctdGAN:
         # ====== ii) performs data transformations (scaling, PCA, outlier detection, etc.)
         self._samples_per_class = np.unique(y_train, return_counts=True)[1]
 
-        self._clustered_transformer = ctdClusterer(cluster_method=self._cluster_method, max_clusters=self._max_clusters,
+        self._clustered_transformer = ctdClusterer(cluster_method=self._cluster_method,
+                                                   max_clusters=self._max_clusters,
                                                    scaler=self._scaler,
                                                    samples_per_class=self._samples_per_class,
                                                    continuous_columns=tuple(continuous_columns),
                                                    discrete_columns=tuple(self._categorical_columns),
-                                                   embedding_dim=self.embedding_dim_, random_state=self._random_state)
+                                                   embedding_dim=self._embedding_dim,
+                                                   random_state=self._random_state)
 
-        train_data = self._clustered_transformer.perform_clustering(x_train, y_train, self._n_classes, self.pac_)
+        train_data = self._clustered_transformer.perform_clustering(x_train, y_train, self._n_classes, self._pac)
 
         self._n_clusters = self._clustered_transformer.num_clusters_
 
@@ -240,9 +240,7 @@ class ctdGAN:
             num_samples: The number of latent data instances.
 
         Returns:
-             * `latent_vectors`      :  The feature vectors of the latent data.
-             * `latent_clusters_ohe` :  One-hot-encoded latent clusters.
-             * `latent_classes_ohe:` :  One-hot-encoded latent classes.
+             latent continuous variables, latent distinct variables
         """
 
         # === Discrete variables - Simple random one-hot-encoded integers
@@ -260,7 +258,7 @@ class ctdGAN:
         latent_disc = torch.hstack(latent_disc).to(self._device)
 
         # === Continuous variables - Sample from Normal distribution.
-        mean = torch.zeros(num_samples, self.embedding_dim_)
+        mean = torch.zeros(num_samples, self._embedding_dim)
         std = mean + 1
         latent_cont = torch.normal(mean=mean, std=std).to(self._device)
 
@@ -377,10 +375,10 @@ class ctdGAN:
             real_data: data for ctdGAN training: a batch of concatenated sample vectors + one-hot-encoded class vectors.
         """
 
-        # If the size of the batch does not allow an organization of the input vectors in packs of size self.pac_, then
+        # If the size of the batch does not allow an organization of the input vectors in packs of size self._pac, then
         # abort silently and return without updating the model parameters.
         num_samples = real_data.shape[0]
-        if num_samples % self.pac_ != 0:
+        if num_samples % self._pac != 0:
             print("pac error")
             return 0, 0
 
@@ -437,9 +435,9 @@ class ctdGAN:
             store_losses: The file path where the values of the Discriminator and Generator loss functions are stored.
         """
 
-        # Modify the size of the batch to align with self.pac_
-        factor = self._batch_size // self.pac_
-        batch_size = factor * self.pac_
+        # Modify the size of the batch to align with self._pac
+        factor = self._batch_size // self._pac
+        batch_size = factor * self._pac
 
         # Prepare the data for training (Clustering, Computation of Probability Distributions, Transformations, etc.)
         training_data = self.cluster_transform(x_train, y_train, categorical_columns=categorical_columns)
@@ -447,10 +445,10 @@ class ctdGAN:
         train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 
         real_space_dimensions = self._discrete_transformer.output_dimensions
-        latent_space_dimensions = self.embedding_dim_ + self._discrete_transformer.ohe_dimensions
+        latent_space_dimensions = self._embedding_dim + self._discrete_transformer.ohe_dimensions
 
         self.D_ = Critic(input_dim=real_space_dimensions, discriminator_dim=self.D_Arch_,
-                         pac=self.pac_).to(self._device)
+                         pac=self._pac).to(self._device)
 
         self.G_ = Generator(embedding_dim=latent_space_dimensions, architecture=self.G_Arch_,
                             data_dim=real_space_dimensions).to(self._device)
@@ -565,7 +563,7 @@ class ctdGAN:
             # Create the discrete and continuous tensors.
             latent_disc_ohe = torch.tensor(np.hstack(latent_disc_ohe))
 
-            mean = torch.zeros(num_samples, self.embedding_dim_)
+            mean = torch.zeros(num_samples, self._embedding_dim)
             std = mean + 1
             latent_cont = torch.normal(mean=mean, std=std)
 
