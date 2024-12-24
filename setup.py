@@ -15,8 +15,8 @@ LONG_DESCRIPTION = '<p>ctdGAN is a Conditional Generative Adversarial Network fo
     '<a href="https://github.com/lakritidis/ctdGAN">https://github.com/lakritidis/ctdGAN</a></p>'
 
 setup(
-    name='ctdGAN',
-    version='0.1.0',
+    name='ctdgan',
+    version='0.1.1',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
