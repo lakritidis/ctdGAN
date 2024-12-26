@@ -9,9 +9,9 @@ from torch.utils.data import DataLoader
 
 from tqdm import tqdm
 
-from TabularTransformer import TabularTransformer
-from ctd_gan_networks import Critic, Generator
-from ctd_clusterer import ctdClusterer
+from ctdGAN.TabularTransformer import TabularTransformer
+from ctdGAN.ctd_gan_networks import Critic, Generator
+from ctdGAN.ctd_clusterer import ctdClusterer
 
 
 class ctdGAN:

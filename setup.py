@@ -15,8 +15,8 @@ LONG_DESCRIPTION = '<p>ctdGAN is a Conditional Generative Adversarial Network fo
     '<a href="https://github.com/lakritidis/ctdGAN">https://github.com/lakritidis/ctdGAN</a></p>'
 
 setup(
-    name='ctdgan',
-    version='0.1.2',
+    name='ctdGAN',
+    version='0.1.9',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
@@ -25,7 +25,6 @@ setup(
     maintainer="Leonidas Akritidis",
     maintainer_email="lakritidis@ihu.gr",
     packages=find_packages(),
-    package_data={'': ['generators/*']},
     url='https://github.com/lakritidis/ctdGAN',
     install_requires=["numpy",
                       "pandas",

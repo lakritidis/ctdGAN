@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+ctdGAN/TabularDataset.py
+ctdGAN/TabularTransformer.py
+ctdGAN/Tools.py
+ctdGAN/__init__.py
+ctdGAN/ctd_clusterer.py
+ctdGAN/ctd_gan.py
+ctdGAN/ctd_gan_networks.py
+ctdGAN/main.py
+ctdGAN.egg-info/PKG-INFO
+ctdGAN.egg-info/SOURCES.txt
+ctdGAN.egg-info/dependency_links.txt
+ctdGAN.egg-info/requires.txt
+ctdGAN.egg-info/top_level.txt

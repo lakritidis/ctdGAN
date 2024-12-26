@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: ctdGAN
+Version: 0.1.9
+Summary: A Generative Adversarial Network for synthesizing artificial tabular data.
+Home-page: https://github.com/lakritidis/ctdGAN
+Author: Leonidas Akritidis
+Author-email: lakritidis@ihu.gr
+Maintainer: Leonidas Akritidis
+Maintainer-email: lakritidis@ihu.gr
+License: Apache
+Keywords: ctdGAN,GAN,Generative Adversarial Network,imbalanced data,tabular data,deep learning
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: sdv
+Requires-Dist: tqdm
+Requires-Dist: joblib
+Requires-Dist: torch>=2.0.0
+Requires-Dist: scikit-learn>=1.4.0
+Requires-Dist: rdt<2.0,>=1.3.0
+
+<p>ctdGAN is a Conditional Generative Adversarial Network for alleviating class imbalance in tabular datasets. The model is based on an initial space partitioning step that assigns cluster labels to the input samples. These labels are used to synthesize samples via a probabilistic sampling mechanism. ctdGAN optimizes a loss function that is sensitive to both cluster and class mis-predictions, rendering the modelcapable of generating samples in subspaces that resemble those of the original data distribution.</p><p><b>Licence:</b> Apache License, 2.0 (Apache-2.0)</p><p><b>Dependencies:</b>NumPy, pandas, Matplotlib, seaborn, joblib, Reversible Data Transforms(RDT), scikit-learn, pytorch, Synthetic Data Vault</p><p><b>GitHub repository:</b> <a href="https://github.com/lakritidis/ctdGAN">https://github.com/lakritidis/ctdGAN</a></p>

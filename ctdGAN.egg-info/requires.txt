@@ -1,0 +1,10 @@
+numpy
+pandas
+matplotlib
+seaborn
+sdv
+tqdm
+joblib
+torch>=2.0.0
+scikit-learn>=1.4.0
+rdt<2.0,>=1.3.0
