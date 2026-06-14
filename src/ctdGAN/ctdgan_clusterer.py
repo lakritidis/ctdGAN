@@ -1,25 +1,24 @@
+from joblib import Parallel, delayed
+
 import numpy as np
 import pandas as pd
 
+import gower
+
 from sklearn.ensemble import IsolationForest
-
 from sklearn.cluster import KMeans, AgglomerativeClustering, HDBSCAN
-
-from kmodes.kprototypes import KPrototypes
-from kmodes.kmodes import KModes
-
 from sklearn.metrics import adjusted_rand_score
 from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-
-import gower
-
-from joblib import Parallel, delayed
-
-from ctdgan_cluster import ctdCluster
-from Tools import relabel_clusters
 from sklearn.utils import resample
+
+from kmodes.kprototypes import KPrototypes
+from kmodes.kmodes import KModes
+
+from .ctdgan_cluster import ctdCluster
+from .Tools import relabel_clusters
+
 
 
 class ctdClusterer:
