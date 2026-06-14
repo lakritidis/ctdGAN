@@ -12,6 +12,7 @@ from joblib import Parallel, delayed
 from rdt.transformers import ClusterBasedNormalizer, OneHotEncoder
 
 from collections import namedtuple
+import multiprocessing
 
 SpanInfo = namedtuple('SpanInfo', ['dim', 'activation_fn'])
 ColumnTransformInfo = namedtuple(
@@ -20,7 +21,7 @@ ColumnTransformInfo = namedtuple(
     ]
 )
 
-# TabularTransformer
+
 class TabularTransformer(object):
     """Data Transformer.
 
@@ -52,12 +53,15 @@ class TabularTransformer(object):
             clip: If 'True' the reconstructed data will be clipped to their original minimum and maximum values.
         """
         self._cont_normalizer = cont_normalizer
+        if cont_normalizer not in ['glob-vgm', 'glob-stds', 'glob-mms01', 'glob-mms11', 'glob-yeo', 'glob-stds-pca']:
+            self._cont_normalizer = 'None'
+
         self._max_clusters = max_clusters
         self._weight_threshold = weight_threshold
         self._with_mean = with_mean
         self._with_std = with_std
         self._column_raw_dtypes = []
-        self._column_transform_info_list = []
+        self.column_transform_info_list = []
         self._clip = clip
         self.output_info_list = []
         self.output_dimensions = 0
@@ -78,7 +82,7 @@ class TabularTransformer(object):
         min_val = np.array(data.min(axis=0))[0]
 
         cti = None
-        if self._cont_normalizer == 'vgm':
+        if self._cont_normalizer == 'glob-vgm':
             tran = ClusterBasedNormalizer(model_missing_values=True, max_clusters=min(len(data), self._max_clusters))
             tran.fit(data, column_name)
             num_components = sum(tran.valid_component_indicator)
@@ -88,7 +92,7 @@ class TabularTransformer(object):
                                       output_info=[SpanInfo(1, 'tanh'), SpanInfo(num_components, 'softmax')],
                                       output_dimensions=1 + num_components)
 
-        elif self._cont_normalizer == 'stds':
+        elif self._cont_normalizer == 'glob-stds':
             tran = StandardScaler(with_std=self._with_std, with_mean=self._with_mean)
             tran.fit(data)
 
@@ -96,7 +100,7 @@ class TabularTransformer(object):
                                       column_max=max_val, column_min=min_val,
                                       output_info=[SpanInfo(1, 'tanh')], output_dimensions=1)
 
-        elif self._cont_normalizer == 'mms01':
+        elif self._cont_normalizer == 'glob-mms01':
             tran = MinMaxScaler(feature_range=(0, 1))
             tran.fit(data)
 
@@ -104,7 +108,7 @@ class TabularTransformer(object):
                                       column_max=max_val, column_min=min_val,
                                       output_info=[SpanInfo(1, 'tanh')], output_dimensions=1)
 
-        elif self._cont_normalizer == 'mms11':
+        elif self._cont_normalizer == 'glob-mms11':
             tran = MinMaxScaler(feature_range=(-1, 1))
             tran.fit(data)
 
@@ -112,7 +116,7 @@ class TabularTransformer(object):
                                       column_max=max_val, column_min=min_val,
                                       output_info=[SpanInfo(1, 'tanh')], output_dimensions=1)
 
-        elif self._cont_normalizer == 'stds-pca':
+        elif self._cont_normalizer == 'glob-stds-pca':
             tran = Pipeline(steps=[("std", StandardScaler(with_std=self._with_std, with_mean=self._with_mean)),
                                    ("pca", PCA())])
             tran.fit(data)
@@ -121,7 +125,7 @@ class TabularTransformer(object):
                                       column_max=max_val, column_min=min_val,
                                       output_info=[SpanInfo(1, 'tanh')], output_dimensions=1)
 
-        elif self._cont_normalizer == 'yeo':
+        elif self._cont_normalizer == 'glob-yeo':
             tran = PowerTransformer(method='yeo-johnson', standardize=True)
             tran.fit(data)
 
@@ -135,6 +139,17 @@ class TabularTransformer(object):
                                       output_info=[SpanInfo(1, 'tanh')], output_dimensions=1)
 
         return cti
+
+    def _show_ohe_vectors(self, enc):
+        categories = enc.dummies
+        columns = list(enc.get_output_sdtypes().keys())
+        vectors = {}
+        for i, cat in enumerate(categories):
+            vec = [0] * len(categories)
+            vec[i] = 1
+            vectors[cat] = vec
+
+        print(pd.DataFrame.from_dict(vectors, orient='index', columns=columns))
 
     def _fit_discrete(self, data):
         """Fit one hot encoder for discrete column.
@@ -150,6 +165,8 @@ class TabularTransformer(object):
         ohe.fit(data, column_name)
         num_categories = len(ohe.dummies)
         self.ohe_dimensions += num_categories
+
+        #self._show_ohe_vectors(ohe)
 
         return ColumnTransformInfo(
             column_name=column_name, column_type='discrete', transform=ohe,
@@ -175,20 +192,22 @@ class TabularTransformer(object):
             raw_data = pd.DataFrame(raw_data, columns=column_names)
 
         self._column_raw_dtypes = raw_data.infer_objects().dtypes
-        self._column_transform_info_list = []
+        self.column_transform_info_list = []
         for column_name in raw_data.columns:
             if column_name in discrete_columns:
+                #print("Fitting discrete column", column_name)
                 column_transform_info = self._fit_discrete(raw_data[[column_name]])
             else:
+                #print("Fitting continuous column", column_name)
                 column_transform_info = self._fit_continuous(raw_data[[column_name]])
 
             self.output_info_list.append(column_transform_info.output_info)
             self.output_dimensions += column_transform_info.output_dimensions
-            self._column_transform_info_list.append(column_transform_info)
+            self.column_transform_info_list.append(column_transform_info)
 
     def _transform_continuous(self, column_transform_info, data):
         output = None
-        if self._cont_normalizer == 'vgm':
+        if self._cont_normalizer == 'glob-vgm':
             column_name = data.columns[0]
             flattened_column = data[column_name].to_numpy().flatten()
             data = data.assign(**{column_name: flattened_column})
@@ -202,8 +221,8 @@ class TabularTransformer(object):
             index = transformed[f'{column_name}.component'].to_numpy().astype(int)
             output[np.arange(index.size), index + 1] = 1.0
 
-        elif (self._cont_normalizer == 'stds' or self._cont_normalizer == 'mms01' or self._cont_normalizer == 'mms11'
-              or self._cont_normalizer == 'stds-pca' or self._cont_normalizer == 'yeo'):
+        elif (self._cont_normalizer == 'glob-stds' or self._cont_normalizer == 'glob-mms01' or self._cont_normalizer == 'glob-mms11'
+              or self._cont_normalizer == 'glob-stds-pca' or self._cont_normalizer == 'glob-yeo'):
             output = column_transform_info.transform.transform(data)
 
         elif self._cont_normalizer == 'None':
@@ -258,10 +277,10 @@ class TabularTransformer(object):
             raw_data = pd.DataFrame(raw_data, columns=column_names)
 
         # Only use parallelization with larger data sizes. Otherwise, the transformation will be slower.
-        if raw_data.shape[0] < 500:
-            column_data_list = self._synchronous_transform(raw_data, self._column_transform_info_list)
+        if raw_data.shape[0] < 50000:
+            column_data_list = self._synchronous_transform(raw_data, self.column_transform_info_list)
         else:
-            column_data_list = self._parallel_transform(raw_data, self._column_transform_info_list)
+            column_data_list = self._parallel_transform(raw_data, self.column_transform_info_list)
 
         return np.concatenate(column_data_list, axis=1).astype(float)
 
@@ -269,7 +288,7 @@ class TabularTransformer(object):
         ret_data = None
         encoder = column_transform_info.transform
 
-        if self._cont_normalizer == 'vgm':
+        if self._cont_normalizer == 'glob-vgm':
             data = pd.DataFrame(column_data[:, :2], columns=list(encoder.get_output_sdtypes()))
             data[data.columns[1]] = np.argmax(column_data[:, 1:], axis=1)
             if sigmas is not None:
@@ -278,8 +297,9 @@ class TabularTransformer(object):
 
             ret_data = encoder.reverse_transform(data)
 
-        elif self._cont_normalizer == 'stds' or self._cont_normalizer == 'mms11' or self._cont_normalizer == 'stds-pca'\
-                or self._cont_normalizer == 'yeo':
+        elif (self._cont_normalizer == 'glob-stds' or self._cont_normalizer == 'glob-mms11' or self._cont_normalizer == 'glob-mms01'
+              or self._cont_normalizer == 'glob-stds-pca' or self._cont_normalizer == 'glob-yeo'):
+
             ret_data = encoder.inverse_transform(column_data)
 
         elif self._cont_normalizer == 'None':
@@ -291,7 +311,7 @@ class TabularTransformer(object):
 
         return ret_data
 
-    def _inverse_transform_discrete(self, column_transform_info, column_data):
+    def inverse_transform_discrete(self, column_transform_info, column_data):
         ohe = column_transform_info.transform
         data = pd.DataFrame(column_data, columns=list(ohe.get_output_sdtypes()))
         return ohe.reverse_transform(data)[column_transform_info.column_name]
@@ -305,13 +325,13 @@ class TabularTransformer(object):
         st = 0
         recovered_column_data_list = []
         column_names = []
-        for column_transform_info in self._column_transform_info_list:
+        for column_transform_info in self.column_transform_info_list:
             dim = column_transform_info.output_dimensions
             column_data = data[:, st:st + dim]
             if column_transform_info.column_type == 'continuous':
                 recovered_col_data = self._inverse_transform_continuous(column_transform_info, column_data, sigmas, st)
             else:
-                recovered_col_data = self._inverse_transform_discrete(column_transform_info, column_data)
+                recovered_col_data = self.inverse_transform_discrete(column_transform_info, column_data)
 
             recovered_column_data_list.append(recovered_col_data)
             column_names.append(column_transform_info.column_name)
@@ -328,7 +348,7 @@ class TabularTransformer(object):
         """Get the ids of the given `column_name`."""
         discrete_counter = 0
         column_id = 0
-        for column_transform_info in self._column_transform_info_list:
+        for column_transform_info in self.column_transform_info_list:
             if column_transform_info.column_name == column_name:
                 break
             if column_transform_info.column_type == 'discrete':
@@ -348,8 +368,15 @@ class TabularTransformer(object):
         return {
             'discrete_column_id': discrete_counter,
             'column_id': column_id,
-            'value_id': np.argmax(one_hot)
+            'value_id': np.argmax(one_hot),
         }
 
     def get_column_transform_info_list(self):
-        return self._column_transform_info_list
+        return self.column_transform_info_list
+
+    def get_column_transform_info(self, column_name):
+        for column_transform_info in self.column_transform_info_list:
+            if column_transform_info.column_name == column_name:
+                return column_transform_info
+        else:
+            raise ValueError(f"The column_name `{column_name}` doesn't exist in the data.")

@@ -1,4 +1,7 @@
+import random
 import numpy as np
+import pandas as pd
+from scipy.stats import chi2_contingency
 import torch
 
 import gc
@@ -6,7 +9,7 @@ import contextlib
 
 
 def set_random_states(manual_seed):
-    """Initialize the random number generators of NumPy, PyTorch, and PyTorch CUDA by passing the input seed.
+    """Initializes the random number generators of NumPy, PyTorch, and PyTorch CUDA by passing the input seed.
 
     Args:
         manual_seed: An integer to be passed to the random number generators.
@@ -23,6 +26,22 @@ def set_random_states(manual_seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+
+def set_random_states_old(manual_seed):
+    np.random.seed(manual_seed)
+
+    if manual_seed is None:
+        torch.manual_seed(0)
+        torch.cuda.manual_seed_all(0)
+        random.seed(0)
+    else:
+        torch.manual_seed(manual_seed)
+        torch.cuda.manual_seed_all(manual_seed)
+        random.seed(manual_seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True)
 
 def get_random_states():
     """Retrieves the current states of randomness of NumPy, PyTorch, and PyTorch CUDA.
@@ -57,6 +76,25 @@ def reset_random_states(np_random_state, torch_random_state, cuda_random_state):
 
     gc.collect()
 
+
+def relabel_clusters(labels):
+    """
+    Relabel cluster IDs so they become consecutive integers starting from 0.
+
+    Example:
+        [0,0,0,0,2,2,2] -> [0,0,0,0,1,1,1]
+    """
+    mapping = {}
+    new_labels = []
+    next_label = 0
+
+    for label in labels:
+        if label not in mapping:
+            mapping[label] = next_label
+            next_label += 1
+        new_labels.append(mapping[label])
+
+    return new_labels
 
 @contextlib.contextmanager
 def ct_set_random_states(seed, set_model_random_state):
@@ -105,3 +143,50 @@ def random_state(function):
                 return function(self, *args, **kwargs)
 
     return wrapper
+
+def cramers_v(x, y):
+    confusion_matrix = pd.crosstab(x, y)
+    chi2 = chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.sum().sum()
+    r, k = confusion_matrix.shape
+    return np.sqrt(chi2 / (n * (min(k - 1, r - 1) + 1e-8)))
+
+def correlation_ratio(categories, measurements):
+    categories = pd.Categorical(categories)
+    groups = [measurements[categories == cat] for cat in categories.categories]
+
+    grand_mean = np.mean(measurements)
+
+    ss_between = sum(len(g) * (np.mean(g) - grand_mean) ** 2 for g in groups)
+    ss_total = sum((measurements - grand_mean)**2)
+
+    return np.sqrt(ss_between / (ss_total + 1e-8))
+
+def compute_mixed_matrix(df, cat_cols):
+    cols = df.columns
+    mat = pd.DataFrame(np.zeros((len(cols), len(cols))), index=cols, columns=cols)
+
+    num_cols = [c for c in cols if c not in cat_cols]
+
+    for i, col1 in enumerate(cols):
+        for j, col2 in enumerate(cols):
+
+            if col1 == col2:
+                mat.loc[col1, col2] = 1.0
+
+            elif col1 in num_cols and col2 in num_cols:
+                mat.loc[col1, col2] = df[col1].corr(df[col2])
+
+            elif col1 in cat_cols and col2 in cat_cols:
+                mat.loc[col1, col2] = cramers_v(df[col1], df[col2])
+
+            else:
+                # numeric-categorical
+                if col1 in cat_cols:
+                    cat, num = col1, col2
+                else:
+                    cat, num = col2, col1
+
+                mat.loc[col1, col2] = correlation_ratio(df[cat], df[num])
+
+    return mat
