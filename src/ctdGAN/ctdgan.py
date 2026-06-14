@@ -11,10 +11,9 @@ from tqdm import tqdm
 from ctdgan_datatransformer import TabularTransformer
 from ctdgan_networks import ctdCritic, ctdGenerator, train_classifier
 from ctdgan_clusterer import ctdClusterer
-
+import Tools
 from ctdgan_datasampler import ctdDataSampler
 
-# import DeepCoreML.paths as paths
 torch.set_printoptions(threshold=20000)
 
 
@@ -124,6 +123,7 @@ class ctdGAN:
         self.cluster_col_end_index = 0
 
         self._random_state = random_state  # An integer to seed the random number generators
+        Tools.set_random_states(random_state)
 
     @staticmethod
     def _gumbel_softmax(logits, tau=1.0, hard=False, eps=1e-10, dim=-1):

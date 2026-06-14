@@ -1,0 +1,17 @@
+LICENSE
+README.md
+pyproject.toml
+src/ctdGAN/Tools.py
+src/ctdGAN/__init__.py
+src/ctdGAN/ctdgan.py
+src/ctdGAN/ctdgan_cluster.py
+src/ctdGAN/ctdgan_clusterer.py
+src/ctdGAN/ctdgan_datasampler.py
+src/ctdGAN/ctdgan_datatransformer.py
+src/ctdGAN/ctdgan_networks.py
+src/ctdGAN/main.py
+src/ctdGAN.egg-info/PKG-INFO
+src/ctdGAN.egg-info/SOURCES.txt
+src/ctdGAN.egg-info/dependency_links.txt
+src/ctdGAN.egg-info/requires.txt
+src/ctdGAN.egg-info/top_level.txt

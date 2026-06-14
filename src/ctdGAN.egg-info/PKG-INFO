@@ -1,3 +1,20 @@
+Metadata-Version: 2.4
+Name: ctdGAN
+Version: 0.3.1
+Summary: ctdGAN
+Author-email: Leonidas Akritidis <lakritidis@ihu.gr>
+License: Apache
+Project-URL: Homepage, https://github.com/lakritidis/ctdGAN
+Project-URL: Repository, https://github.com/lakritidis/ctdGAN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests>=2.31
+Dynamic: license-file
+
 # ctdGAN
 A Generative Adversarial Network for synthesizing artificial tabular data
 

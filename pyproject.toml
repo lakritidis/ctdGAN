@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctdGAN"
+version = "0.3.1"
+description = "ctdGAN"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache"}
+
+authors = [
+  {name = "Leonidas Akritidis", email = "lakritidis@ihu.gr"}
+]
+
+dependencies = [
+  "requests>=2.31"
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.urls]
+Homepage = "https://github.com/lakritidis/ctdGAN"
+Repository = "https://github.com/lakritidis/ctdGAN"

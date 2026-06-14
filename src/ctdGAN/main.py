@@ -4,7 +4,6 @@ import sys
 import numpy as np
 import pandas as pd
 import time
-import Tools
 from ctdgan import ctdGAN
 
 num_threads = 1
@@ -12,13 +11,12 @@ os.environ['OMP_NUM_THREADS'] = str(num_threads)
 np.set_printoptions(linewidth=400, threshold=sys.maxsize)
 seed = 1
 
-dataset_path = 'D:/datasets/Imbalanced/bin_mixed/heart.csv'
+dataset_path = '/media/leo/7CE54B377BB9B18B/datasets/Imbalanced/bin_mixed/heart.csv'
 categorical_columns = (1, 2, 6, 8, 10, 12)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     random_state = 42
-    Tools.set_random_states(random_state)
 
     df = pd.read_csv(dataset_path)
     x = df.iloc[:, :-1]
