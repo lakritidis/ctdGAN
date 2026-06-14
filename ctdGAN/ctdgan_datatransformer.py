@@ -12,7 +12,6 @@ from joblib import Parallel, delayed
 from rdt.transformers import ClusterBasedNormalizer, OneHotEncoder
 
 from collections import namedtuple
-import multiprocessing
 
 SpanInfo = namedtuple('SpanInfo', ['dim', 'activation_fn'])
 ColumnTransformInfo = namedtuple(
@@ -140,7 +139,8 @@ class TabularTransformer(object):
 
         return cti
 
-    def _show_ohe_vectors(self, enc):
+    @staticmethod
+    def _show_ohe_vectors(enc):
         categories = enc.dummies
         columns = list(enc.get_output_sdtypes().keys())
         vectors = {}
@@ -230,7 +230,8 @@ class TabularTransformer(object):
 
         return output
 
-    def transform_discrete(self, column_transform_info, data):
+    @staticmethod
+    def transform_discrete(column_transform_info, data):
         ohe = column_transform_info.transform
         return ohe.transform(data).to_numpy()
 
@@ -311,7 +312,8 @@ class TabularTransformer(object):
 
         return ret_data
 
-    def inverse_transform_discrete(self, column_transform_info, column_data):
+    @staticmethod
+    def inverse_transform_discrete(column_transform_info, column_data):
         ohe = column_transform_info.transform
         data = pd.DataFrame(column_data, columns=list(ohe.get_output_sdtypes()))
         return ohe.reverse_transform(data)[column_transform_info.column_name]

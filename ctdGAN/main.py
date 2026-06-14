@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import time
-
+import Tools
 from ctdgan import ctdGAN
 
 num_threads = 1
@@ -17,6 +17,8 @@ categorical_columns = (1, 2, 6, 8, 10, 12)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    random_state = 42
+    Tools.set_random_states(random_state)
 
     df = pd.read_csv(dataset_path)
     x = df.iloc[:, :-1]
@@ -24,11 +26,11 @@ if __name__ == '__main__':
 
     ctdgan = ctdGAN(embedding_dim=128, discriminator=(256, 256), generator=(256, 256), epochs=300, batch_size=100,
                     pac=10, max_clusters=20, cluster_method='kmeans', scaler='mms11', use_classifier=True,
-                    sampling_strategy='auto', alpha_k=0.07, random_state=42)
+                    sampling_strategy='auto', alpha_k=0.07, random_state=random_state)
 
     t_s = time.time()
     balanced_data = ctdgan.fit_resample(x, y, categorical_columns=categorical_columns)
 
     print("Balanced Data shape:", balanced_data[0].shape)
-    # print(balanced_data[0])
+    print(balanced_data[0])
     print("Finished in", time.time() - t_s, "sec")

@@ -26,23 +26,6 @@ def set_random_states(manual_seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-
-def set_random_states_old(manual_seed):
-    np.random.seed(manual_seed)
-
-    if manual_seed is None:
-        torch.manual_seed(0)
-        torch.cuda.manual_seed_all(0)
-        random.seed(0)
-    else:
-        torch.manual_seed(manual_seed)
-        torch.cuda.manual_seed_all(manual_seed)
-        random.seed(manual_seed)
-
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    torch.use_deterministic_algorithms(True)
-
 def get_random_states():
     """Retrieves the current states of randomness of NumPy, PyTorch, and PyTorch CUDA.
 

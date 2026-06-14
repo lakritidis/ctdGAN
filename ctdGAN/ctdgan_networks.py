@@ -3,7 +3,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as f
 
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.utils.class_weight import compute_class_weight
@@ -28,7 +28,7 @@ class ctdCritic(nn.Module):
         self._seq = nn.Sequential(*seq)
 
     def calc_gradient_penalty(self, real_data, fake_data, device='cpu', lambda_=10):
-        """Compute the gradient penalty. From the paper on improved WGAN training."""
+        """Compute the gradient penalty. From the paper on improved Wasserstein GAN training."""
         alpha = torch.rand(real_data.size(0) // self._pac, 1, 1, device=device)
         alpha = alpha.repeat(1, self._pac, real_data.size(1))
         alpha = alpha.view(-1, real_data.size(1))
@@ -134,7 +134,7 @@ class ctdClassifier(nn.Module):
 # Training Function
 # =========================================================
 def train_classifier(x_tr, y_tr, x_val, y_val, input_dim, num_classes, hidden_dims=(128, 256, 256, 128),
-                     batch_size=64, epochs=30, lr=1e-3, weight_decay=1e-4, patience=5, device="cuda"):
+                     batch_size=64, epochs=30, lr=1e-3, weight_decay=1e-4, patience=5, device="cuda", random_state=0):
     """
     Train the classifier network.
 
@@ -152,6 +152,7 @@ def train_classifier(x_tr, y_tr, x_val, y_val, input_dim, num_classes, hidden_di
         weight_decay: the weight decay.
         patience: the number of epochs without improvement.
         device:
+        random_state: the random seed.
     :return:
         The trained classifier network.
     """
@@ -160,7 +161,8 @@ def train_classifier(x_tr, y_tr, x_val, y_val, input_dim, num_classes, hidden_di
     val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=batch_size, shuffle=False)
 
     # class weights
-    class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_tr.cpu().numpy()), y=y_tr.cpu().numpy())
+    class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_tr.cpu().numpy()),
+                                         y=y_tr.cpu().numpy())
     class_weights = torch.tensor(class_weights, dtype=torch.float32).to(device)
 
     # model
@@ -210,7 +212,7 @@ def train_classifier(x_tr, y_tr, x_val, y_val, input_dim, num_classes, hidden_di
                 loss = criterion(logits, yb)
                 val_loss += loss.item()
 
-                probs = F.softmax(logits, dim=1)
+                probs = f.softmax(logits, dim=1)
                 all_probs.append(probs.cpu().numpy())
                 all_targets.append(yb.cpu().numpy())
 

@@ -18,7 +18,7 @@ from ctdgan_datasampler import ctdDataSampler
 torch.set_printoptions(threshold=20000)
 
 
-class ctdGAN():
+class ctdGAN:
     """
     ctdGAN implementation
 
@@ -348,7 +348,7 @@ class ctdGAN():
             # The classifier for the class labels. Used for
             self.Qy_ = train_classifier(x_tr=x_cl_train, y_tr=y_cl_train, x_val=x_cl_val, y_val=y_cl_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3)
+                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3, random_state=self._random_state)
 
             # Freeze the Qy classifier gradients
             for p in self.Qy_.parameters():
@@ -363,7 +363,7 @@ class ctdGAN():
 
             self.Qu_ = train_classifier(x_tr=x_cl_train, y_tr=y_clu_train, x_val=x_cl_val, y_val=y_clu_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3)
+                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3, random_state=self._random_state)
 
             # Freeze the classifier gradients
             for pU in self.Qu_.parameters():
@@ -400,6 +400,7 @@ class ctdGAN():
         condvec = self._data_sampler.sample_condvec(self._batch_size, batch_type, self._n_classes)
         if condvec is None:
             c1, m1, col, opt = None, None, None, None
+            c2 = None
             real = self._data_sampler.sample_data(training_data, self._batch_size, col, opt, batch_type)
         else:
             c1, m1, col, opt = condvec
@@ -680,7 +681,6 @@ class ctdGAN():
             imb_matrix = self._clustered_transformer.imbalance_matrix_
 
             # Perform oversampling by performing cluster-based oversampling
-            majority_samples = np.max(imb_matrix, axis=0)
             majority_classes = np.argmax(imb_matrix, axis=0)
             #print("Imbalance Matrix:\n", imb_matrix)
             #print(majority_samples)
