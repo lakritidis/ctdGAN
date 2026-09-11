@@ -27,9 +27,9 @@ class ctdGAN:
     instances are generated via a probabilistic sampling strategy.
     """
 
-    def __init__(self, discriminator=(128, 128), generator=(256, 256), embedding_dim=128, epochs=300, batch_size=32,
-                 pac=1, lr=2e-4, decay=1e-6, sampling_strategy='auto', use_classifier=True,
-                 scaler='mms11', cluster_method='kmeans', max_clusters=20, alpha_k=0.02, random_state=0):
+    def __init__(self, discriminator=(256, 256), generator=(256, 256), embedding_dim=128, epochs=300, batch_size=32,
+                 pac=10, lr=2e-4, decay=1e-6, sampling_strategy='auto', use_classifier=True,
+                 scaler='mms11', cluster_method='hac', max_clusters=20, alpha_k=0.02, random_state=0):
         """
         ctdGAN initializer
 
@@ -348,7 +348,8 @@ class ctdGAN:
             # The classifier for the class labels. Used for
             self.Qy_ = train_classifier(x_tr=x_cl_train, y_tr=y_cl_train, x_val=x_cl_val, y_val=y_cl_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3, random_state=self._random_state)
+                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3,
+                                        random_state=self._random_state, device=self._device)
 
             # Freeze the Qy classifier gradients
             for p in self.Qy_.parameters():
@@ -363,7 +364,8 @@ class ctdGAN:
 
             self.Qu_ = train_classifier(x_tr=x_cl_train, y_tr=y_clu_train, x_val=x_cl_val, y_val=y_clu_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3, random_state=self._random_state)
+                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3,
+                                        random_state=self._random_state, device=self._device)
 
             # Freeze the classifier gradients
             for pU in self.Qu_.parameters():
