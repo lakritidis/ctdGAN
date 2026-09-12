@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import time
 
-# from .ctdgan import ctdGAN
-from src.ctdGAN import ctdGAN
+from .ctdgan import ctdGAN
+#from src.ctdGAN import ctdGAN
 
 num_threads = 1
 os.environ['OMP_NUM_THREADS'] = str(num_threads)
