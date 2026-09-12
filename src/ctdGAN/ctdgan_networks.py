@@ -134,7 +134,7 @@ class ctdClassifier(nn.Module):
 # Training Function
 # =========================================================
 def train_classifier(x_tr, y_tr, x_val, y_val, input_dim, num_classes, hidden_dims=(128, 256, 256, 128),
-                     batch_size=64, epochs=30, lr=1e-3, weight_decay=1e-4, patience=5, device="cuda", random_state=0):
+                     batch_size=64, epochs=30, lr=1e-3, weight_decay=1e-4, patience=5, device="cuda"):
     """
     Train the classifier network.
 

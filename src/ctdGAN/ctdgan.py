@@ -29,7 +29,7 @@ class ctdGAN:
 
     def __init__(self, discriminator=(256, 256), generator=(256, 256), embedding_dim=128, epochs=300, batch_size=32,
                  pac=10, lr=2e-4, decay=1e-6, sampling_strategy='auto', use_classifier=True,
-                 scaler='mms11', cluster_method='hac', max_clusters=20, alpha_k=0.02, random_state=0):
+                 scaler='mms11', cluster_method='hac', max_clusters=20, alpha_k=0.06, random_state=0):
         """
         ctdGAN initializer
 
@@ -348,8 +348,7 @@ class ctdGAN:
             # The classifier for the class labels. Used for
             self.Qy_ = train_classifier(x_tr=x_cl_train, y_tr=y_cl_train, x_val=x_cl_val, y_val=y_cl_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3,
-                                        random_state=self._random_state, device=self._device)
+                                        num_classes=self._n_classes, batch_size=64, epochs=30, lr=1e-3, device=self._device)
 
             # Freeze the Qy classifier gradients
             for p in self.Qy_.parameters():
@@ -364,8 +363,7 @@ class ctdGAN:
 
             self.Qu_ = train_classifier(x_tr=x_cl_train, y_tr=y_clu_train, x_val=x_cl_val, y_val=y_clu_val,
                                         hidden_dims=(128, 256, 256, 128), input_dim=self.cluster_col_start_index,
-                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3,
-                                        random_state=self._random_state, device=self._device)
+                                        num_classes=self._n_clusters, batch_size=64, epochs=30, lr=1e-3, device=self._device)
 
             # Freeze the classifier gradients
             for pU in self.Qu_.parameters():
@@ -567,8 +565,8 @@ class ctdGAN:
                     if num_generated_samples > num_samples:
                         return_samples = np.vstack(reconstructed_samples)
                         acc_rate = 100.0 * num_generated_samples / (num_generated_samples + num_rejected_samples)
-                        print(f"\t\tFully created {return_samples.shape[0]} samples from class: {condition_value} in "
-                              f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
+                        #print(f"\t\tFully created {return_samples.shape[0]} samples from class: {condition_value} in "
+                        #      f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
                         return return_samples
 
                     reconstructed_sample = self._clustered_transformer.get_cluster(generated_cluster).inverse_transform(z)
@@ -586,12 +584,12 @@ class ctdGAN:
 
         if return_samples.shape[0] < num_samples:
             acc_rate = 100.0 * num_generated_samples / (num_generated_samples + num_rejected_samples)
-            print(f"\t\tPartially created {return_samples.shape[0]} samples from class: {condition_value} in "
-                  f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
+            #print(f"\t\tPartially created {return_samples.shape[0]} samples from class: {condition_value} in "
+            #      f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
         else:
             acc_rate = 100.0 * num_generated_samples / (num_generated_samples + num_rejected_samples)
-            print(f"\t\tFully created {return_samples.shape[0]} samples from class: {condition_value} in "
-                  f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
+            #print(f"\t\tFully created {return_samples.shape[0]} samples from class: {condition_value} in "
+            #      f"cluster: {sec_condition_value}. Accept rate: {acc_rate}, Retries: {num_retries}.")
 
         return return_samples
 

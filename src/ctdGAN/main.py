@@ -4,15 +4,17 @@ import sys
 import numpy as np
 import pandas as pd
 import time
-from .ctdgan import ctdGAN
+
+# from .ctdgan import ctdGAN
+from src.ctdGAN import ctdGAN
 
 num_threads = 1
 os.environ['OMP_NUM_THREADS'] = str(num_threads)
 np.set_printoptions(linewidth=400, threshold=sys.maxsize)
 seed = 1
 
-dataset_path = '/media/leo/7CE54B377BB9B18B/datasets/Imbalanced/bin_mixed/heart.csv'
-categorical_columns = (1, 2, 6, 8, 10, 12)
+dataset_path = '/media/leo/7CE54B377BB9B18B/datasets/Imbalanced/bin_continuous/ar1.csv'
+categorical_columns = ()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
